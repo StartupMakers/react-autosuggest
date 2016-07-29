@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { inputFocused, inputBlurred, inputChanged, updateFocusedSuggestion,
-         revealSuggestions, closeSuggestions } from './reducerAndActions';
+import { actionCreators } from './reducerAndActions';
 import Autowhatever from 'react-autowhatever';
 
 function mapStateToProps(state) {
@@ -12,29 +11,6 @@ function mapStateToProps(state) {
     focusedSuggestionIndex: state.focusedSuggestionIndex,
     valueBeforeUpDown: state.valueBeforeUpDown,
     lastAction: state.lastAction
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    inputFocused: shouldRenderSuggestions => {
-      dispatch(inputFocused(shouldRenderSuggestions));
-    },
-    inputBlurred: () => {
-      dispatch(inputBlurred());
-    },
-    inputChanged: (shouldRenderSuggestions, lastAction) => {
-      dispatch(inputChanged(shouldRenderSuggestions, lastAction));
-    },
-    updateFocusedSuggestion: (sectionIndex, suggestionIndex, value) => {
-      dispatch(updateFocusedSuggestion(sectionIndex, suggestionIndex, value));
-    },
-    revealSuggestions: () => {
-      dispatch(revealSuggestions());
-    },
-    closeSuggestions: lastAction => {
-      dispatch(closeSuggestions(lastAction));
-    }
   };
 }
 
@@ -51,6 +27,7 @@ class Autosuggest extends Component {
     renderSectionTitle: PropTypes.func.isRequired,
     getSectionSuggestions: PropTypes.func.isRequired,
     focusInputOnSuggestionClick: PropTypes.bool.isRequired,
+    focusFirstSuggestion: PropTypes.bool.isRequired,
     theme: PropTypes.object.isRequired,
     id: PropTypes.string.isRequired,
     inputRef: PropTypes.func.isRequired,
@@ -73,7 +50,12 @@ class Autosuggest extends Component {
   constructor() {
     super();
 
-    this.saveInput = this.saveInput.bind(this);
+    this.storeInputReference = this.storeInputReference.bind(this);
+    this.renderSuggestion = this.renderSuggestion.bind(this);
+    this.onSuggestionMouseEnter = this.onSuggestionMouseEnter.bind(this);
+    this.onSuggestionMouseLeave = this.onSuggestionMouseLeave.bind(this);
+    this.onSuggestionMouseDown = this.onSuggestionMouseDown.bind(this);
+    this.onSuggestionClick = this.onSuggestionClick.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -82,9 +64,12 @@ class Autosuggest extends Component {
               isCollapsed, revealSuggestions, lastAction } = nextProps;
       const { value } = inputProps;
 
-      if (isCollapsed && lastAction !== 'click' && lastAction !== 'enter' &&
-          suggestions.length > 0 && shouldRenderSuggestions(value)) {
-        revealSuggestions();
+      if (suggestions.length > 0 && shouldRenderSuggestions(value)) {
+        this.maybeFocusFirstSuggestion();
+
+        if (isCollapsed && lastAction !== 'click' && lastAction !== 'enter') {
+          revealSuggestions();
+        }
       }
     }
   }
@@ -140,11 +125,27 @@ class Autosuggest extends Component {
     throw new Error('Couldn\'t find suggestion element');
   }
 
-  maybeEmitOnChange(event, newValue, method) {
+  maybeCallOnChange(event, newValue, method) {
     const { value, onChange } = this.props.inputProps;
 
     if (newValue !== value) {
       onChange && onChange(event, { newValue, method });
+    }
+  }
+
+  maybeCallOnSuggestionsUpdateRequested(data) {
+    const { onSuggestionsUpdateRequested, shouldRenderSuggestions } = this.props;
+
+    if (shouldRenderSuggestions(data.value)) {
+      onSuggestionsUpdateRequested(data);
+    }
+  }
+
+  maybeFocusFirstSuggestion() {
+    const { focusFirstSuggestion, multiSection, updateFocusedSuggestion } = this.props;
+
+    if (focusFirstSuggestion) {
+      updateFocusedSuggestion(multiSection ? 0 : null, 0);
     }
   }
 
@@ -155,23 +156,81 @@ class Autosuggest extends Component {
     return suggestions.length > 0 && shouldRenderSuggestions(value);
   }
 
-  saveInput(autowhatever) {
+  storeInputReference(autowhatever) {
     if (autowhatever !== null) {
-      const input = autowhatever.refs.input;
+      const input = autowhatever.input;
 
       this.input = input;
       this.props.inputRef(input);
     }
   }
 
+  onSuggestionMouseEnter(event, { sectionIndex, itemIndex }) {
+    // IOS :hover fix
+    // http://stackoverflow.com/questions/2741816/is-it-possible-to-force-ignore-the-hover-pseudoclass-for-iphone-ipad-users
+    if ('ontouchstart' in document) {
+      return;
+    }
+    this.props.updateFocusedSuggestion(sectionIndex, itemIndex);
+  }
+
+  onSuggestionMouseLeave() {
+    this.props.updateFocusedSuggestion(null, null);
+  }
+
+  onSuggestionMouseDown() {
+    this.justClickedOnSuggestion = true;
+  }
+
+  onSuggestionClick(event) {
+    const {
+      inputProps, onSuggestionSelected, focusInputOnSuggestionClick,
+      inputBlurred, closeSuggestions
+    } = this.props;
+    const { onBlur } = inputProps;
+    const { sectionIndex, suggestionIndex } =
+      this.getSuggestionIndices(this.findSuggestionElement(event.target));
+    const clickedSuggestion = this.getSuggestion(sectionIndex, suggestionIndex);
+    const clickedSuggestionValue = this.props.getSuggestionValue(clickedSuggestion);
+
+    this.maybeCallOnChange(event, clickedSuggestionValue, 'click');
+    onSuggestionSelected(event, {
+      suggestion: clickedSuggestion,
+      suggestionValue: clickedSuggestionValue,
+      sectionIndex,
+      method: 'click'
+    });
+    closeSuggestions('click');
+
+    if (focusInputOnSuggestionClick === true) {
+      this.input.focus();
+    } else {
+      inputBlurred();
+      onBlur && onBlur(this.onBlurEvent);
+    }
+
+    this.maybeCallOnSuggestionsUpdateRequested({ value: clickedSuggestionValue, reason: 'click' });
+
+    setTimeout(() => {
+      this.justClickedOnSuggestion = false;
+    });
+  }
+
+  renderSuggestion(suggestion) {
+    const { inputProps, valueBeforeUpDown } = this.props;
+    const { value } = inputProps;
+
+    return this.props.renderSuggestion(suggestion, { value, valueBeforeUpDown });
+  }
+
   render() {
     const {
-      suggestions, onSuggestionsUpdateRequested, renderSuggestion, inputProps,
-      shouldRenderSuggestions, onSuggestionSelected, multiSection,
-      renderSectionTitle, id, getSectionSuggestions, focusInputOnSuggestionClick,
+      suggestions, inputProps, shouldRenderSuggestions, onSuggestionSelected,
+      multiSection, renderSectionTitle, id, getSectionSuggestions,
       theme, isFocused, isCollapsed, focusedSectionIndex, focusedSuggestionIndex,
       valueBeforeUpDown, inputFocused, inputBlurred, inputChanged,
-      updateFocusedSuggestion, revealSuggestions, closeSuggestions
+      updateFocusedSuggestion, revealSuggestions, closeSuggestions,
+      getSuggestionValue
     } = this.props;
     const { value, onBlur, onFocus, onKeyDown } = inputProps;
     const isOpen = isFocused && !isCollapsed && this.willRenderSuggestions();
@@ -182,6 +241,10 @@ class Autosuggest extends Component {
         if (!this.justClickedOnSuggestion) {
           inputFocused(shouldRenderSuggestions(value));
           onFocus && onFocus(event);
+
+          if (suggestions.length > 0) {
+            this.maybeFocusFirstSuggestion();
+          }
         }
       },
       onBlur: event => {
@@ -192,17 +255,17 @@ class Autosuggest extends Component {
           onBlur && onBlur(event);
 
           if (valueBeforeUpDown !== null && value !== valueBeforeUpDown) {
-            onSuggestionsUpdateRequested({ value, reason: 'blur' });
+            this.maybeCallOnSuggestionsUpdateRequested({ value, reason: 'blur' });
           }
         }
       },
       onChange: event => {
         const { value } = event.target;
-        const { shouldRenderSuggestions, onSuggestionsUpdateRequested } = this.props;
+        const { shouldRenderSuggestions } = this.props;
 
-        this.maybeEmitOnChange(event, value, 'type');
+        this.maybeCallOnChange(event, value, 'type');
         inputChanged(shouldRenderSuggestions(value), 'type');
-        onSuggestionsUpdateRequested({ value, reason: 'type' });
+        this.maybeCallOnSuggestionsUpdateRequested({ value, reason: 'type' });
       },
       onKeyDown: (event, data) => {
         switch (event.key) {
@@ -214,12 +277,20 @@ class Autosuggest extends Component {
               }
             } else if (suggestions.length > 0) {
               const { newFocusedSectionIndex, newFocusedItemIndex } = data;
-              const newValue = newFocusedItemIndex === null ?
-                valueBeforeUpDown :
-                this.getSuggestionValueByIndex(newFocusedSectionIndex, newFocusedItemIndex);
+
+              let newValue;
+
+              if (newFocusedItemIndex === null) {
+                // valueBeforeUpDown can be null if, for example, user
+                // hovers on the first suggestion and then pressed Up.
+                // If that happens, use the original input value.
+                newValue = (valueBeforeUpDown === null ? value : valueBeforeUpDown);
+              } else {
+                newValue = this.getSuggestionValueByIndex(newFocusedSectionIndex, newFocusedItemIndex);
+              }
 
               updateFocusedSuggestion(newFocusedSectionIndex, newFocusedItemIndex, value);
-              this.maybeEmitOnChange(event, newValue, event.key === 'ArrowDown' ? 'down' : 'up');
+              this.maybeCallOnChange(event, newValue, event.key === 'ArrowDown' ? 'down' : 'up');
             }
             event.preventDefault();
             break;
@@ -227,14 +298,20 @@ class Autosuggest extends Component {
           case 'Enter': {
             const focusedSuggestion = this.getFocusedSuggestion();
 
+            closeSuggestions('enter');
+
             if (focusedSuggestion !== null) {
-              closeSuggestions('enter');
+              const newValue = getSuggestionValue(focusedSuggestion);
+
               onSuggestionSelected(event, {
                 suggestion: focusedSuggestion,
-                suggestionValue: value,
+                suggestionValue: newValue,
+                sectionIndex: focusedSectionIndex,
                 method: 'enter'
               });
-              onSuggestionsUpdateRequested({ value, reason: 'enter' });
+
+              this.maybeCallOnChange(event, newValue, 'enter');
+              this.maybeCallOnSuggestionsUpdateRequested({ value: newValue, reason: 'enter' });
             }
             break;
           }
@@ -250,11 +327,11 @@ class Autosuggest extends Component {
 
             if (valueBeforeUpDown === null) { // Didn't interact with Up/Down
               if (!isOpen) {
-                this.maybeEmitOnChange(event, '', 'escape');
-                onSuggestionsUpdateRequested({ value: '', reason: 'escape' });
+                this.maybeCallOnChange(event, '', 'escape');
+                this.maybeCallOnSuggestionsUpdateRequested({ value: '', reason: 'escape' });
               }
             } else { // Interacted with Up/Down
-              this.maybeEmitOnChange(event, valueBeforeUpDown, 'escape');
+              this.maybeCallOnChange(event, valueBeforeUpDown, 'escape');
             }
 
             closeSuggestions('escape');
@@ -264,68 +341,34 @@ class Autosuggest extends Component {
         onKeyDown && onKeyDown(event);
       }
     };
-    const onMouseEnter = (event, { sectionIndex, itemIndex }) => {
-      updateFocusedSuggestion(sectionIndex, itemIndex);
-    };
-    const onMouseLeave = () => {
-      updateFocusedSuggestion(null, null);
-    };
-    const onMouseDown = () => {
-      this.justClickedOnSuggestion = true;
-    };
-    const onClick = event => {
-      const { sectionIndex, suggestionIndex } =
-        this.getSuggestionIndices(this.findSuggestionElement(event.target));
-      const clickedSuggestion = this.getSuggestion(sectionIndex, suggestionIndex);
-      const clickedSuggestionValue = this.props.getSuggestionValue(clickedSuggestion);
-
-      this.maybeEmitOnChange(event, clickedSuggestionValue, 'click');
-      onSuggestionSelected(event, {
-        suggestion: clickedSuggestion,
-        suggestionValue: clickedSuggestionValue,
-        method: 'click'
-      });
-      closeSuggestions('click');
-
-      if (focusInputOnSuggestionClick === true) {
-        this.input.focus();
-      } else {
-        inputBlurred();
-        onBlur && onBlur(this.onBlurEvent);
-      }
-
-      onSuggestionsUpdateRequested({ value: clickedSuggestionValue, reason: 'click' });
-
-      this.justClickedOnSuggestion = false;
-    };
     const itemProps = ({ sectionIndex, itemIndex }) => {
       return {
         'data-section-index': sectionIndex,
         'data-suggestion-index': itemIndex,
-        onMouseEnter,
-        onMouseLeave,
-        onMouseDown,
-        onTouchStart: onMouseDown, // Because on iOS `onMouseDown` is not triggered
-        onClick
+        onMouseEnter: this.onSuggestionMouseEnter,
+        onMouseLeave: this.onSuggestionMouseLeave,
+        onMouseDown: this.onSuggestionMouseDown,
+        onTouchStart: this.onSuggestionMouseDown, // Because on iOS `onMouseDown` is not triggered
+        onClick: this.onSuggestionClick
       };
     };
-    const renderItem = item => renderSuggestion(item, { value, valueBeforeUpDown });
 
     return (
-      <Autowhatever multiSection={multiSection}
-                    items={items}
-                    renderItem={renderItem}
-                    renderSectionTitle={renderSectionTitle}
-                    getSectionItems={getSectionSuggestions}
-                    focusedSectionIndex={focusedSectionIndex}
-                    focusedItemIndex={focusedSuggestionIndex}
-                    inputProps={autowhateverInputProps}
-                    itemProps={itemProps}
-                    theme={theme}
-                    id={id}
-                    ref={this.saveInput} />
+      <Autowhatever
+        multiSection={multiSection}
+        items={items}
+        renderItem={this.renderSuggestion}
+        renderSectionTitle={renderSectionTitle}
+        getSectionItems={getSectionSuggestions}
+        focusedSectionIndex={focusedSectionIndex}
+        focusedItemIndex={focusedSuggestionIndex}
+        inputProps={autowhateverInputProps}
+        itemProps={itemProps}
+        theme={theme}
+        id={id}
+        ref={this.storeInputReference} />
     );
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Autosuggest);
+export default connect(mapStateToProps, actionCreators)(Autosuggest);

@@ -28,6 +28,10 @@ export const renderSuggestion = sinon.spy(suggestion => {
   );
 });
 
+function shouldRenderSuggestions() {
+  return true;
+}
+
 export const onChange = sinon.spy((event, { newValue }) => {
   app.setState({
     value: newValue
@@ -35,6 +39,7 @@ export const onChange = sinon.spy((event, { newValue }) => {
 });
 
 export const onBlur = sinon.spy();
+export const onSuggestionSelected = sinon.spy();
 
 export const onSuggestionsUpdateRequested = sinon.spy(({ value }) => {
   app.setState({
@@ -51,6 +56,12 @@ export const renderSectionTitle = sinon.spy(section => {
 export const getSectionSuggestions = sinon.spy(section => {
   return section.languages;
 });
+
+let focusFirstSuggestion = false;
+
+export function setFocusFirstSuggestion(value) {
+  focusFirstSuggestion = value;
+}
 
 export default class AutosuggestApp extends Component {
   constructor() {
@@ -73,16 +84,19 @@ export default class AutosuggestApp extends Component {
     };
 
     return (
-      <Autosuggest multiSection={true}
-                   suggestions={suggestions}
-                   onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
-                   getSuggestionValue={getSuggestionValue}
-                   renderSuggestion={renderSuggestion}
-                   inputProps={inputProps}
-                   shouldRenderSuggestions={() => true}
-                   renderSectionTitle={renderSectionTitle}
-                   getSectionSuggestions={getSectionSuggestions}
-                   focusInputOnSuggestionClick={false} />
+      <Autosuggest
+        multiSection={true}
+        suggestions={suggestions}
+        onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
+        getSuggestionValue={getSuggestionValue}
+        renderSuggestion={renderSuggestion}
+        inputProps={inputProps}
+        shouldRenderSuggestions={shouldRenderSuggestions}
+        onSuggestionSelected={onSuggestionSelected}
+        renderSectionTitle={renderSectionTitle}
+        getSectionSuggestions={getSectionSuggestions}
+        focusInputOnSuggestionClick={false}
+        focusFirstSuggestion={focusFirstSuggestion} />
     );
   }
 }
