@@ -107,12 +107,12 @@
 	  year: 2003
 	}];
 
-	// https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions#Using_Special_Characters
-	function escapeRegexCharacters(str) {
+	// https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions#Using_special_characters
+	var escapeRegexCharacters = function escapeRegexCharacters(str) {
 	  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
+	};
 
-	function getSuggestions(value) {
+	var getSuggestions = function getSuggestions(value) {
 	  var escapedValue = escapeRegexCharacters(value.trim());
 
 	  if (escapedValue === '') {
@@ -124,19 +124,19 @@
 	  return languages.filter(function (language) {
 	    return regex.test(language.name);
 	  });
-	}
+	};
 
-	function getSuggestionValue(suggestion) {
+	var getSuggestionValue = function getSuggestionValue(suggestion) {
 	  return suggestion.name;
-	}
+	};
 
-	function renderSuggestion(suggestion) {
+	var renderSuggestion = function renderSuggestion(suggestion) {
 	  return React.createElement(
 	    'span',
 	    null,
 	    suggestion.name
 	  );
-	}
+	};
 
 	var App = function (_React$Component) {
 	  _inherits(App, _React$Component);
@@ -145,42 +145,43 @@
 	  function App() {
 	    _classCallCheck(this, App);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(App).call(this));
+	    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+
+	    _this.onChange = function (event, _ref) {
+	      var newValue = _ref.newValue;
+
+	      _this.setState({
+	        value: newValue
+	      });
+	    };
+
+	    _this.onSuggestionsFetchRequested = function (_ref2) {
+	      var value = _ref2.value;
+
+	      _this.setState({
+	        suggestions: getSuggestions(value)
+	      });
+	    };
+
+	    _this.onSuggestionsClearRequested = function () {
+	      _this.setState({
+	        suggestions: []
+	      });
+	    };
 
 	    _this.state = {
 	      value: '',
 	      suggestions: getSuggestions('')
 	    };
-
-	    _this.onChange = _this.onChange.bind(_this);
-	    _this.onSuggestionsUpdateRequested = _this.onSuggestionsUpdateRequested.bind(_this);
 	    return _this;
 	  }
 
 	  _createClass(App, [{
-	    key: 'onChange',
-	    value: function onChange(event, _ref) {
-	      var newValue = _ref.newValue;
-
-	      this.setState({
-	        value: newValue
-	      });
-	    }
-	  }, {
-	    key: 'onSuggestionsUpdateRequested',
-	    value: function onSuggestionsUpdateRequested(_ref2) {
-	      var value = _ref2.value;
-
-	      this.setState({
-	        suggestions: getSuggestions(value)
-	      });
-	    }
-	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _state = this.state;
-	      var value = _state.value;
-	      var suggestions = _state.suggestions;
+	      var _state = this.state,
+	          value = _state.value,
+	          suggestions = _state.suggestions;
 
 	      var inputProps = {
 	        placeholder: 'Type \'c\'',
@@ -190,10 +191,12 @@
 
 	      return React.createElement(Autosuggest // eslint-disable-line react/jsx-no-undef
 	      , { suggestions: suggestions,
-	        onSuggestionsUpdateRequested: this.onSuggestionsUpdateRequested,
+	        onSuggestionsFetchRequested: this.onSuggestionsFetchRequested,
+	        onSuggestionsClearRequested: this.onSuggestionsClearRequested,
 	        getSuggestionValue: getSuggestionValue,
 	        renderSuggestion: renderSuggestion,
-	        inputProps: inputProps });
+	        inputProps: inputProps
+	      });
 	    }
 	  }]);
 

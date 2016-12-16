@@ -4,13 +4,13 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import {
   init,
-  eventInstance,
+  syntheticEventMatcher,
   getInnerHTML,
   expectContainerAttribute,
   expectInputAttribute,
   expectSuggestions,
   expectFocusedSuggestion,
-  expectSuggestionsContainerAttribute,
+  getSuggestionsContainerAttribute,
   getTitle,
   clickSuggestion,
   focusInput,
@@ -19,11 +19,10 @@ import {
   clickDown,
   setInputValue,
   focusAndSetInputValue,
-  isInputFocused
+  clickClearButton
 } from '../helpers';
 import AutosuggestApp, {
-  onSuggestionsUpdateRequested,
-  onBlur,
+  onSuggestionsFetchRequested,
   onSuggestionSelected,
   renderSectionTitle,
   getSectionSuggestions,
@@ -32,15 +31,11 @@ import AutosuggestApp, {
 
 describe('Autosuggest with multiSection={true}', () => {
   beforeEach(() => {
-    const app = TestUtils.renderIntoDocument(React.createElement(AutosuggestApp));
-    const container = TestUtils.findRenderedDOMComponentWithClass(app, 'react-autosuggest__container');
-    const input = TestUtils.findRenderedDOMComponentWithTag(app, 'input');
-
-    init({ app, container, input });
+    init(TestUtils.renderIntoDocument(<AutosuggestApp />));
   });
 
   describe('shouldRenderSuggestions', () => {
-    it('should show suggestions input is empty and `true` is returned', () => {
+    it('should show suggestions input is empty and true is returned', () => {
       focusInput();
       expectSuggestions([
         'C', 'C#', 'C++', 'Clojure', 'Elm', 'Go', 'Haskell', 'Java',
@@ -57,7 +52,7 @@ describe('Autosuggest with multiSection={true}', () => {
 
     it('should be called with the right sectionIndex when suggestion is clicked', () => {
       clickSuggestion(4);
-      expect(onSuggestionSelected).to.have.been.calledWith(eventInstance, sinon.match({
+      expect(onSuggestionSelected).to.have.been.calledWith(syntheticEventMatcher, sinon.match({
         sectionIndex: 1
       }));
     });
@@ -65,42 +60,41 @@ describe('Autosuggest with multiSection={true}', () => {
     it('should be called with the right sectionIndex when Enter is pressed and suggestion is focused', () => {
       clickDown(6);
       clickEnter();
-      expect(onSuggestionSelected).to.have.been.calledWith(eventInstance, sinon.match({
+      expect(onSuggestionSelected).to.have.been.calledWith(syntheticEventMatcher, sinon.match({
         sectionIndex: 2
       }));
     });
   });
 
-  describe('onSuggestionsUpdateRequested', () => {
-    it('should be called once with the right parameters when Escape is pressed and suggestions are hidden and shouldRenderSuggestions returns `true` for empty value', () => {
+  describe('onSuggestionsFetchRequested', () => {
+    it('should be called once with the right parameters when input gets focus and shouldRenderSuggestions returns true', () => {
+      onSuggestionsFetchRequested.reset();
+      focusInput();
+      expect(onSuggestionsFetchRequested).to.have.been.calledOnce;
+      expect(onSuggestionsFetchRequested).to.have.been.calledWithExactly({ value: '' });
+    });
+
+    it('should be called once with the right parameters when Escape is pressed and suggestions are hidden and shouldRenderSuggestions returns true for empty value', () => {
       focusAndSetInputValue('jr');
-      onSuggestionsUpdateRequested.reset();
+      onSuggestionsFetchRequested.reset();
       clickEscape();
-      expect(onSuggestionsUpdateRequested).to.have.been.calledOnce;
-      expect(onSuggestionsUpdateRequested).to.have.been.calledWithExactly({ value: '', reason: 'escape' });
+      expect(onSuggestionsFetchRequested).to.have.been.calledOnce;
+      expect(onSuggestionsFetchRequested).to.have.been.calledWithExactly({ value: '' });
     });
   });
 
-  describe('when focusInputOnSuggestionClick is `false` and suggestion is clicked', () => {
+  describe('when input is cleared after suggestion is clicked', () => {
     beforeEach(() => {
-      onBlur.reset();
-      focusAndSetInputValue('p');
-      onSuggestionsUpdateRequested.reset();
+      focusInput();
       clickSuggestion(1);
     });
 
-    it('should not focus on input', () => {
-      expect(isInputFocused()).to.equal(false);
-    });
-
-    it('should call onBlur once with the right parameters', () => {
-      expect(onBlur).to.have.been.calledOnce;
-      expect(onBlur).to.have.been.calledWithExactly(eventInstance);
-    });
-
-    it('should call onSuggestionsUpdateRequested once with the right parameters', () => {
-      expect(onSuggestionsUpdateRequested).to.have.been.calledOnce;
-      expect(onSuggestionsUpdateRequested).to.have.been.calledWithExactly({ value: 'PHP', reason: 'click' });
+    it('should show suggestions', () => {
+      clickClearButton();
+      expectSuggestions([
+        'C', 'C#', 'C++', 'Clojure', 'Elm', 'Go', 'Haskell', 'Java',
+        'Javascript', 'Perl', 'PHP', 'Python', 'Ruby', 'Scala'
+      ]);
     });
   });
 
@@ -192,7 +186,7 @@ describe('Autosuggest with multiSection={true}', () => {
 
     it('should set suggestions container class', () => {
       focusAndSetInputValue('e');
-      expectSuggestionsContainerAttribute('class', 'react-autosuggest__suggestions-container');
+      expect(getSuggestionsContainerAttribute('class')).to.equal('react-autosuggest__suggestions-container');
     });
   });
 

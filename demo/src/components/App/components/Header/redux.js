@@ -1,27 +1,26 @@
 import fetch from 'isomorphic-fetch';
 
-const LOAD_STARGAZERS_SUCCESS = 'LOAD_STARGAZERS_SUCCESS';
+const UPDATE_STARGAZERS = 'UPDATE_STARGAZERS';
 
 const initialState = {
-  stargazers: '987'
+  stargazers: '1419'
 };
 
-export function loadStargazers() {
-  return dispatch => {
-    fetch('https://api.github.com/repos/moroshko/react-autosuggest')
-      .then(response => response.json())
-      .then(response => {
+export const loadStargazers = () => dispatch =>
+  fetch('https://api.github.com/repos/moroshko/react-autosuggest')
+    .then(response => response.json())
+    .then(response => {
+      if (response.stargazers_count) {
         dispatch({
-          type: LOAD_STARGAZERS_SUCCESS,
+          type: UPDATE_STARGAZERS,
           stargazers: String(response.stargazers_count)
         });
-      });
-  };
-}
+      }
+    });
 
-export default function reducer(state = initialState, action = {}) {
+const reducer = (state = initialState, action = {}) => {
   switch (action.type) {
-    case LOAD_STARGAZERS_SUCCESS:
+    case UPDATE_STARGAZERS:
       return {
         ...state,
         stargazers: action.stargazers
@@ -30,4 +29,6 @@ export default function reducer(state = initialState, action = {}) {
     default:
       return state;
   }
-}
+};
+
+export default reducer;

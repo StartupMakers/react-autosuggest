@@ -1,4 +1,7 @@
 node_modules
-.happypack
-.idea
+coverage
+.nyc_output
+dist
+demo/dist
 npm-debug.log
+yarn.lock

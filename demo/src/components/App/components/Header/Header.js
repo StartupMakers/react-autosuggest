@@ -6,16 +6,13 @@ import Link from 'Link/Link';
 import GitHub from 'GitHub/GitHub';
 import { loadStargazers } from './redux';
 
-function mapStateToProps({ header }) {
-  return {
-    stargazers: header.stargazers
-  };
-}
+const mapStateToProps = ({ header }) => ({
+  stargazers: header.stargazers
+});
 
 class Header extends Component {
   static propTypes = {
     stargazers: PropTypes.string.isRequired,
-
     loadStargazers: PropTypes.func.isRequired
   };
 
@@ -39,20 +36,23 @@ class Header extends Component {
           className={styles.button}
           href="https://github.com/moroshko/react-autosuggest#installation"
           target="_blank"
-          rel="noopener noreferrer">
+          rel="noopener noreferrer"
+        >
           Get started
         </a>
         <div className={styles.socialLinks}>
           <Link
             className={styles.stargazersLink}
             href="https://github.com/moroshko/react-autosuggest/stargazers"
-            underline={false}>
+            underline={false}
+          >
             {stargazers} stargazers
           </Link>
           <Link
             className={styles.twitterLink}
             href="https://twitter.com/moroshko"
-            underline={false}>
+            underline={false}
+          >
             @moroshko
           </Link>
         </div>

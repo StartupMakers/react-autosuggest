@@ -59,12 +59,10 @@ const languages = [
   }
 ];
 
-// https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions#Using_Special_Characters
-function escapeRegexCharacters(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+// https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions#Using_special_characters
+const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function getSuggestions(value) {
+const getSuggestions = value => {
   const escapedValue = escapeRegexCharacters(value.trim());
 
   if (escapedValue === '') {
@@ -74,17 +72,13 @@ function getSuggestions(value) {
   const regex = new RegExp('^' + escapedValue, 'i');
 
   return languages.filter(language => regex.test(language.name));
-}
+};
 
-function getSuggestionValue(suggestion) {
-  return suggestion.name;
-}
+const getSuggestionValue = suggestion => suggestion.name;
 
-function renderSuggestion(suggestion) {
-  return (
-    <span>{suggestion.name}</span>
-  );
-}
+const renderSuggestion = suggestion => (
+  <span>{suggestion.name}</span>
+);
 
 class App extends React.Component { // eslint-disable-line no-undef
   constructor() {
@@ -94,22 +88,25 @@ class App extends React.Component { // eslint-disable-line no-undef
       value: '',
       suggestions: getSuggestions('')
     };
-
-    this.onChange = this.onChange.bind(this);
-    this.onSuggestionsUpdateRequested = this.onSuggestionsUpdateRequested.bind(this);
   }
 
-  onChange(event, { newValue }) {
+  onChange = (event, { newValue }) => {
     this.setState({
       value: newValue
     });
-  }
+  };
 
-  onSuggestionsUpdateRequested({ value }) {
+  onSuggestionsFetchRequested = ({ value }) => {
     this.setState({
       suggestions: getSuggestions(value)
     });
-  }
+  };
+
+  onSuggestionsClearRequested = () => {
+    this.setState({
+      suggestions: []
+    });
+  };
 
   render() {
     const { value, suggestions } = this.state;
@@ -122,10 +119,12 @@ class App extends React.Component { // eslint-disable-line no-undef
     return (
       <Autosuggest // eslint-disable-line react/jsx-no-undef
         suggestions={suggestions}
-        onSuggestionsUpdateRequested={this.onSuggestionsUpdateRequested}
+        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
         getSuggestionValue={getSuggestionValue}
         renderSuggestion={renderSuggestion}
-        inputProps={inputProps} />
+        inputProps={inputProps}
+      />
     );
   }
 }

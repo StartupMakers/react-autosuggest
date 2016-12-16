@@ -10,7 +10,7 @@ import { escapeRegexCharacters } from 'utils/utils';
 
 const focusInputOnSuggestionClick = !isMobile.any;
 
-function getSuggestions(value) {
+const getSuggestions = value => {
   const escapedValue = escapeRegexCharacters(value.trim());
 
   if (escapedValue === '') {
@@ -27,27 +27,19 @@ function getSuggestions(value) {
       };
     })
     .filter(section => section.languages.length > 0);
-}
+};
 
-function getSuggestionValue(suggestion) {
-  return suggestion.name;
-}
+const getSuggestionValue = suggestion => suggestion.name;
 
-function renderSuggestion(suggestion) {
-  return (
-    <span>{suggestion.name}</span>
-  );
-}
+const renderSuggestion = suggestion => (
+  <span>{suggestion.name}</span>
+);
 
-function renderSectionTitle(section) {
-  return (
-    <strong>{section.title}</strong>
-  );
-}
+const renderSectionTitle = section => (
+  <strong>{section.title}</strong>
+);
 
-function getSectionSuggestions(section) {
-  return section.languages;
-}
+const getSectionSuggestions = section => section.languages;
 
 export default class MultipleSections extends Component {
   constructor() {
@@ -55,24 +47,27 @@ export default class MultipleSections extends Component {
 
     this.state = {
       value: '',
-      suggestions: getSuggestions('')
+      suggestions: []
     };
-
-    this.onChange = this.onChange.bind(this);
-    this.onSuggestionsUpdateRequested = this.onSuggestionsUpdateRequested.bind(this);
   }
 
-  onChange(event, { newValue }) {
+  onChange = (event, { newValue }) => {
     this.setState({
       value: newValue
     });
-  }
+  };
 
-  onSuggestionsUpdateRequested({ value }) {
+  onSuggestionsFetchRequested = ({ value }) => {
     this.setState({
       suggestions: getSuggestions(value)
     });
-  }
+  };
+
+  onSuggestionsClearRequested = () => {
+    this.setState({
+      suggestions: []
+    });
+  };
 
   render() {
     const { value, suggestions } = this.state;
@@ -90,11 +85,13 @@ export default class MultipleSections extends Component {
           </div>
           <div className={styles.description}>
             Suggestions can also be presented in multiple sections.
+            Note that we focus the first suggestion by default here.
           </div>
           <Link
             className={styles.codepenLink}
             href="http://codepen.io/moroshko/pen/qbRNjV"
-            underline={false}>
+            underline={false}
+          >
             Codepen
           </Link>
         </div>
@@ -102,15 +99,18 @@ export default class MultipleSections extends Component {
           <Autosuggest
             multiSection={true}
             suggestions={suggestions}
-            onSuggestionsUpdateRequested={this.onSuggestionsUpdateRequested}
+            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
             getSuggestionValue={getSuggestionValue}
             renderSuggestion={renderSuggestion}
             renderSectionTitle={renderSectionTitle}
             getSectionSuggestions={getSectionSuggestions}
             inputProps={inputProps}
+            focusFirstSuggestion={true}
             focusInputOnSuggestionClick={focusInputOnSuggestionClick}
             theme={theme}
-            id="multiple-sections-example" />
+            id="multiple-sections-example"
+          />
         </div>
       </div>
     );
