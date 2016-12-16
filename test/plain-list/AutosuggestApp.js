@@ -1,17 +1,18 @@
 import React, { Component } from 'react';
 import sinon from 'sinon';
-import highlight  from 'autosuggest-highlight';
+import match from 'autosuggest-highlight/match';
+import parse from 'autosuggest-highlight/parse';
 import Autosuggest from '../../src/AutosuggestContainer';
 import languages from './languages';
 import { escapeRegexCharacters } from '../../demo/src/components/utils/utils.js';
 import { addEvent } from '../helpers';
 
-function getMatchingLanguages(value) {
+const getMatchingLanguages = value => {
   const escapedValue = escapeRegexCharacters(value.trim());
   const regex = new RegExp('^' + escapedValue, 'i');
 
   return languages.filter(language => regex.test(language.name));
-}
+};
 
 let app = null;
 
@@ -19,10 +20,9 @@ export const getSuggestionValue = sinon.spy(suggestion => {
   return suggestion.name;
 });
 
-export const renderSuggestion = sinon.spy((suggestion, { value, valueBeforeUpDown }) => {
-  const query = (valueBeforeUpDown || value).trim();
-  const matches = highlight.match(suggestion.name, query);
-  const parts = highlight.parse(suggestion.name, matches);
+export const renderSuggestion = sinon.spy((suggestion, { query }) => {
+  const matches = match(suggestion.name, query);
+  const parts = parse(suggestion.name, matches);
 
   return parts.map((part, index) => {
     return part.highlight ?
@@ -39,19 +39,27 @@ export const onChange = sinon.spy((event, { newValue }) => {
   });
 });
 
+export const onFocus = sinon.spy();
 export const onBlur = sinon.spy();
-export const onSuggestionSelected = sinon.spy(() => {
-  addEvent('onSuggestionSelected');
-});
 
 export const shouldRenderSuggestions = sinon.spy(value => {
   return value.trim().length > 0 && value[0] !== ' ';
 });
 
-export const onSuggestionsUpdateRequested = sinon.spy(({ value }) => {
+export const onSuggestionsFetchRequested = sinon.spy(({ value }) => {
   app.setState({
     suggestions: getMatchingLanguages(value)
   });
+});
+
+export const onSuggestionsClearRequested = sinon.spy(() => {
+  app.setState({
+    suggestions: []
+  });
+});
+
+export const onSuggestionSelected = sinon.spy(() => {
+  addEvent('onSuggestionSelected');
 });
 
 export default class AutosuggestApp extends Component {
@@ -60,19 +68,17 @@ export default class AutosuggestApp extends Component {
 
     app = this;
 
-    this.storeAutosuggestReference = this.storeAutosuggestReference.bind(this);
-
     this.state = {
       value: '',
-      suggestions: getMatchingLanguages('')
+      suggestions: []
     };
   }
 
-  storeAutosuggestReference(autosuggest) {
+  storeAutosuggestReference = autosuggest => {
     if (autosuggest !== null) {
       this.input = autosuggest.input;
     }
-  }
+  };
 
   render() {
     const { value, suggestions } = this.state;
@@ -82,19 +88,22 @@ export default class AutosuggestApp extends Component {
       type: 'search',
       value,
       onChange,
+      onFocus,
       onBlur
     };
 
     return (
       <Autosuggest
         suggestions={suggestions}
-        onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
+        onSuggestionsFetchRequested={onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={onSuggestionsClearRequested}
+        onSuggestionSelected={onSuggestionSelected}
         getSuggestionValue={getSuggestionValue}
         renderSuggestion={renderSuggestion}
         inputProps={inputProps}
         shouldRenderSuggestions={shouldRenderSuggestions}
-        onSuggestionSelected={onSuggestionSelected}
-        ref={this.storeAutosuggestReference} />
+        ref={this.storeAutosuggestReference}
+      />
     );
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "react-autosuggest",
-  "version": "3.9.0",
+  "version": "7.0.2",
   "description": "WAI-ARIA compliant React autosuggest component",
   "main": "dist/index.js",
   "repository": {
@@ -11,11 +11,11 @@
   "scripts": {
     "start": "mkdir -p demo/dist && npm run copy-static-files && node server",
     "lint": "eslint src test demo/src demo/standalone/app.js server.js webpack.*.js",
-    "test": "mocha 'test/**/*.test.js' --compilers js:babel-register --require test/setup.js",
+    "test": "nyc mocha \"test/**/*.test.js\"",
     "copy-static-files": "cp demo/src/index.html demo/src/components/App/components/Examples/components/Basic/autosuggest.css demo/dist/",
     "dist": "rm -rf dist && mkdir dist && babel src -d dist",
-    "demo-dist": "rm -rf demo/dist && mkdir demo/dist && npm run copy-static-files && webpack --config webpack.gh-pages.config.js",
-    "standalone": "webpack --config webpack.standalone.config.js && webpack --config webpack.standalone-demo.config.js",
+    "demo-dist": "rm -rf demo/dist && mkdir demo/dist && npm run copy-static-files && cross-env BABEL_ENV=production webpack --config webpack.gh-pages.config.js",
+    "standalone": "cross-env BABEL_ENV=production webpack --config webpack.standalone.config.js && webpack --config webpack.standalone-demo.config.js",
     "prebuild": "npm run lint && npm test",
     "build": "npm run dist && npm run standalone",
     "gh-pages-build": "npm run prebuild && npm run demo-dist",
@@ -23,53 +23,59 @@
     "prepublish": "npm run dist && npm run standalone"
   },
   "dependencies": {
-    "react-autowhatever": "^4.1.0",
-    "react-redux": "^4.4.5",
-    "redux": "^3.5.1"
+    "react-autowhatever": "^7.0.0",
+    "react-redux": "^5.0.1",
+    "redux": "^3.6.0",
+    "shallow-equal": "^1.0.0"
   },
   "peerDependencies": {
     "react": "^0.14.7 || ^15.0.1"
   },
   "devDependencies": {
-    "autoprefixer": "^6.3.6",
-    "autosuggest-highlight": "^2.1.1",
-    "babel-cli": "^6.7.7",
-    "babel-core": "^6.7.7",
-    "babel-eslint": "^6.0.3",
-    "babel-loader": "^6.2.4",
+    "autoprefixer": "^6.5.4",
+    "autosuggest-highlight": "^3.1.0",
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.20.0",
+    "babel-eslint": "^7.1.1",
+    "babel-loader": "^6.2.10",
     "babel-plugin-react-transform": "^2.0.2",
-    "babel-preset-es2015": "^6.6.0",
-    "babel-preset-react": "^6.5.0",
-    "babel-preset-stage-0": "^6.5.0",
-    "babel-register": "^6.7.2",
+    "babel-plugin-transform-react-remove-prop-types": "^0.2.11",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "babel-register": "^6.18.0",
+    "bithound": "^1.7.0",
     "chai": "^3.5.0",
-    "css-loader": "^0.23.1",
-    "es6-promise": "^3.1.2",
-    "eslint": "2.8.0",
-    "eslint-plugin-react": "^6.0.0-alpha.1",
+    "cross-env": "^3.1.3",
+    "css-loader": "^0.26.1",
+    "es6-promise": "^4.0.5",
+    "eslint": "^3.12.2",
+    "eslint-plugin-react": "6.8.0",
     "extract-text-webpack-plugin": "^1.0.1",
-    "file-loader": "^0.8.5",
-    "happypack": "^2.0.4",
+    "file-loader": "^0.9.0",
     "ismobilejs": "^0.4.0",
     "isomorphic-fetch": "^2.2.1",
-    "jsdom": "^9.0.0",
-    "less": "^2.6.1",
+    "jsdom": "^9.8.3",
+    "less": "^2.7.1",
     "less-loader": "^2.2.3",
-    "mocha": "^2.4.5",
-    "postcss-loader": "^0.9.1",
-    "react": "^15.0.1",
-    "react-addons-test-utils": "^15.0.1",
-    "react-dom": "^15.0.1",
+    "mocha": "^3.2.0",
+    "nyc": "^10.0.0",
+    "openurl": "^1.1.1",
+    "postcss-loader": "^1.2.1",
+    "react": "^15.4.1",
+    "react-addons-test-utils": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-modal": "^1.6.4",
     "react-transform-hmr": "^1.0.4",
-    "redux-thunk": "^2.0.1",
-    "sinon": "^1.17.3",
+    "redux-thunk": "^2.1.0",
+    "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.13.1",
-    "svgo": "^0.6.4",
-    "svgo-loader": "^1.1.0",
+    "svgo": "^0.7.1",
+    "svgo-loader": "^1.1.2",
     "url-loader": "^0.5.7",
-    "webpack": "^1.13.0",
-    "webpack-dev-server": "^1.14.1"
+    "webpack": "^1.14.0",
+    "webpack-dev-server": "^1.16.2"
   },
   "files": [
     "dist"
@@ -93,5 +99,26 @@
     "react-auto-complete",
     "react-component"
   ],
+  "nyc": {
+    "statements": 96,
+    "branches": 91,
+    "functions": 100,
+    "lines": 95,
+    "include": [
+      "src/*.js"
+    ],
+    "exclude": [
+      "test/**/*.js"
+    ],
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ],
+    "require": [
+      "babel-register",
+      "./test/setup.js"
+    ],
+    "check-coverage": true
+  },
   "license": "MIT"
 }

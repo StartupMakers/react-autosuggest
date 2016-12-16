@@ -3,7 +3,8 @@ import theme from './theme.less';
 
 import React, { Component } from 'react';
 import isMobile from 'ismobilejs';
-import highlight  from 'autosuggest-highlight';
+import match from 'autosuggest-highlight/match';
+import parse from 'autosuggest-highlight/parse';
 import Link from 'Link/Link';
 import Autosuggest from 'AutosuggestContainer';
 import people from './people';
@@ -11,7 +12,7 @@ import { escapeRegexCharacters } from 'utils/utils';
 
 const focusInputOnSuggestionClick = !isMobile.any;
 
-function getSuggestions(value) {
+const getSuggestions = value => {
   const escapedValue = escapeRegexCharacters(value.trim());
 
   if (escapedValue === '') {
@@ -21,17 +22,14 @@ function getSuggestions(value) {
   const regex = new RegExp('\\b' + escapedValue, 'i');
 
   return people.filter(person => regex.test(getSuggestionValue(person)));
-}
+};
 
-function getSuggestionValue(suggestion) {
-  return `${suggestion.first} ${suggestion.last}`;
-}
+const getSuggestionValue = suggestion => `${suggestion.first} ${suggestion.last}`;
 
-function renderSuggestion(suggestion, { value, valueBeforeUpDown }) {
+const renderSuggestion = (suggestion, { query }) => {
   const suggestionText = `${suggestion.first} ${suggestion.last}`;
-  const query = (valueBeforeUpDown || value).trim();
-  const matches = highlight.match(suggestionText, query);
-  const parts = highlight.parse(suggestionText, matches);
+  const matches = match(suggestionText, query);
+  const parts = parse(suggestionText, matches);
 
   return (
     <span className={theme.suggestionContent + ' ' + theme[suggestion.twitter]}>
@@ -48,7 +46,7 @@ function renderSuggestion(suggestion, { value, valueBeforeUpDown }) {
       </span>
     </span>
   );
-}
+};
 
 export default class CustomRender extends Component {
   constructor() {
@@ -56,24 +54,31 @@ export default class CustomRender extends Component {
 
     this.state = {
       value: '',
-      suggestions: getSuggestions('')
+      suggestions: []
     };
-
-    this.onChange = this.onChange.bind(this);
-    this.onSuggestionsUpdateRequested = this.onSuggestionsUpdateRequested.bind(this);
   }
 
-  onChange(event, { newValue }) {
+  onChange = (event, { newValue }) => {
     this.setState({
       value: newValue
     });
-  }
+  };
 
-  onSuggestionsUpdateRequested({ value }) {
+  onSuggestionsFetchRequested = ({ value }) => {
+    setTimeout(() => {
+      if (value === this.state.value) {
+        this.setState({
+          suggestions: getSuggestions(value)
+        });
+      }
+    }, 200);
+  };
+
+  onSuggestionsClearRequested = () => {
     this.setState({
-      suggestions: getSuggestions(value)
+      suggestions: []
     });
-  }
+  };
 
   render() {
     const { value, suggestions } = this.state;
@@ -96,20 +101,23 @@ export default class CustomRender extends Component {
           <Link
             className={styles.codepenLink}
             href="http://codepen.io/moroshko/pen/PZWbzK"
-            underline={false}>
+            underline={false}
+          >
             Codepen
           </Link>
         </div>
         <div className={styles.autosuggest}>
           <Autosuggest
             suggestions={suggestions}
-            onSuggestionsUpdateRequested={this.onSuggestionsUpdateRequested}
+            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
             getSuggestionValue={getSuggestionValue}
             renderSuggestion={renderSuggestion}
             inputProps={inputProps}
             focusInputOnSuggestionClick={focusInputOnSuggestionClick}
             theme={theme}
-            id="custom-render-example" />
+            id="custom-render-example"
+          />
         </div>
       </div>
     );
