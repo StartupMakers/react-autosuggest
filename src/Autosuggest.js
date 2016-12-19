@@ -51,6 +51,7 @@ class Autosuggest extends Component {
 
   componentDidMount() {
     document.addEventListener('mousedown', this.onDocumentMouseDown);
+    this.touchDevice = 'ontouschstart' in document;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -184,9 +185,7 @@ class Autosuggest extends Component {
   };
 
   onSuggestionMouseEnter = (event, { sectionIndex, itemIndex }) => {
-    // IOS :hover fix
-    // http://stackoverflow.com/questions/2741816/is-it-possible-to-force-ignore-the-hover-pseudoclass-for-iphone-ipad-users
-    if ('ontouchstart' in document) {
+    if (this.touchDevice) {
       return;
     }
     this.props.updateFocusedSuggestion(sectionIndex, itemIndex);
