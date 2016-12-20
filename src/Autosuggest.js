@@ -51,7 +51,7 @@ class Autosuggest extends Component {
 
   componentDidMount() {
     document.addEventListener('mousedown', this.onDocumentMouseDown);
-    this.touchDevice = 'ontouschstart' in document;
+    this.touchDevice = 'ontouchstart' in document;
   }
 
   componentWillReceiveProps(nextProps) {

@@ -1857,7 +1857,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      document.addEventListener('mousedown', this.onDocumentMouseDown);
-	      this.touchDevice = 'ontouschstart' in document;
+	      this.touchDevice = 'ontouchstart' in document;
 	    }
 	  }, {
 	    key: 'componentWillReceiveProps',
