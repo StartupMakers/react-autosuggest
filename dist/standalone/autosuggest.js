@@ -1610,6 +1610,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    case INPUT_CHANGED:
 	      return _extends({}, state, {
+	        isFocused: true,
 	        focusedSectionIndex: null,
 	        focusedSuggestionIndex: null,
 	        valueBeforeUpDown: null,

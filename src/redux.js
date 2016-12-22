@@ -73,6 +73,7 @@ const reducer = (state, action) => {
     case INPUT_CHANGED:
       return {
         ...state,
+        isFocused: true,
         focusedSectionIndex: null,
         focusedSuggestionIndex: null,
         valueBeforeUpDown: null,

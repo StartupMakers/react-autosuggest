@@ -93,6 +93,7 @@ var reducer = function reducer(state, action) {
 
     case INPUT_CHANGED:
       return _extends({}, state, {
+        isFocused: true,
         focusedSectionIndex: null,
         focusedSuggestionIndex: null,
         valueBeforeUpDown: null,
