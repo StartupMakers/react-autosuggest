@@ -337,7 +337,8 @@ var Autosuggest = function (_Component) {
           revealSuggestions = _props3.revealSuggestions,
           closeSuggestions = _props3.closeSuggestions,
           getSuggestionValue = _props3.getSuggestionValue,
-          alwaysRenderSuggestions = _props3.alwaysRenderSuggestions;
+          alwaysRenderSuggestions = _props3.alwaysRenderSuggestions,
+          disableSuggestionsOnFocus = _props3.disableSuggestionsOnFocus;
       var value = inputProps.value,
           _onFocus = inputProps.onFocus,
           _onKeyDown = inputProps.onKeyDown;
@@ -348,10 +349,12 @@ var Autosuggest = function (_Component) {
       var autowhateverInputProps = _extends({}, inputProps, {
         onFocus: function onFocus(event) {
           if (!_this2.justSelectedSuggestion && !_this2.justClickedOnSuggestionsContainer) {
-            inputFocused(shouldRenderSuggestions(value));
+            if (!disableSuggestionsOnFocus) {
+              inputFocused(shouldRenderSuggestions(value));
+            }
             _onFocus && _onFocus(event);
 
-            if (shouldRenderSuggestions(value)) {
+            if (!disableSuggestionsOnFocus && shouldRenderSuggestions(value)) {
               onSuggestionsFetchRequested({ value: value });
             }
           }
@@ -534,6 +537,7 @@ Autosuggest.propTypes = {
   getSectionSuggestions: _react.PropTypes.func,
   focusInputOnSuggestionClick: _react.PropTypes.bool.isRequired,
   focusFirstSuggestion: _react.PropTypes.bool.isRequired,
+  disableSuggestionsOnFocus: _react.PropTypes.bool,
   theme: _react.PropTypes.object.isRequired,
   id: _react.PropTypes.string.isRequired,
   inputRef: _react.PropTypes.func.isRequired,

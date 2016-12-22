@@ -120,6 +120,7 @@ var AutosuggestContainer = function (_Component) {
           onSuggestionSelected = _props.onSuggestionSelected,
           focusInputOnSuggestionClick = _props.focusInputOnSuggestionClick,
           focusFirstSuggestion = _props.focusFirstSuggestion,
+          disableSuggestionsOnFocus = _props.disableSuggestionsOnFocus,
           alwaysRenderSuggestions = _props.alwaysRenderSuggestions,
           theme = _props.theme,
           id = _props.id;
@@ -142,6 +143,7 @@ var AutosuggestContainer = function (_Component) {
         onSuggestionSelected: onSuggestionSelected,
         focusInputOnSuggestionClick: focusInputOnSuggestionClick,
         focusFirstSuggestion: focusFirstSuggestion,
+        disableSuggestionsOnFocus: disableSuggestionsOnFocus,
         theme: mapToAutowhateverTheme(theme),
         id: id,
         inputRef: this.storeInputReference,
@@ -204,6 +206,7 @@ AutosuggestContainer.propTypes = {
   },
   focusInputOnSuggestionClick: _react.PropTypes.bool,
   focusFirstSuggestion: _react.PropTypes.bool,
+  disableSuggestionsOnFocus: _react.PropTypes.bool,
   theme: _react.PropTypes.object,
   id: _react.PropTypes.string
 };

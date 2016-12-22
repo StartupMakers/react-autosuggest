@@ -184,6 +184,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          onSuggestionSelected = _props.onSuggestionSelected,
 	          focusInputOnSuggestionClick = _props.focusInputOnSuggestionClick,
 	          focusFirstSuggestion = _props.focusFirstSuggestion,
+	          disableSuggestionsOnFocus = _props.disableSuggestionsOnFocus,
 	          alwaysRenderSuggestions = _props.alwaysRenderSuggestions,
 	          theme = _props.theme,
 	          id = _props.id;
@@ -206,6 +207,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        onSuggestionSelected: onSuggestionSelected,
 	        focusInputOnSuggestionClick: focusInputOnSuggestionClick,
 	        focusFirstSuggestion: focusFirstSuggestion,
+	        disableSuggestionsOnFocus: disableSuggestionsOnFocus,
 	        theme: mapToAutowhateverTheme(theme),
 	        id: id,
 	        inputRef: this.storeInputReference,
@@ -278,6 +280,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  focusInputOnSuggestionClick: _react.PropTypes.bool,
 	  focusFirstSuggestion: _react.PropTypes.bool,
+	  disableSuggestionsOnFocus: _react.PropTypes.bool,
 	  theme: _react.PropTypes.object,
 	  id: _react.PropTypes.string
 	} : void 0;
@@ -2006,7 +2009,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          revealSuggestions = _props3.revealSuggestions,
 	          closeSuggestions = _props3.closeSuggestions,
 	          getSuggestionValue = _props3.getSuggestionValue,
-	          alwaysRenderSuggestions = _props3.alwaysRenderSuggestions;
+	          alwaysRenderSuggestions = _props3.alwaysRenderSuggestions,
+	          disableSuggestionsOnFocus = _props3.disableSuggestionsOnFocus;
 	      var value = inputProps.value,
 	          _onFocus = inputProps.onFocus,
 	          _onKeyDown = inputProps.onKeyDown;
@@ -2017,10 +2021,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var autowhateverInputProps = _extends({}, inputProps, {
 	        onFocus: function onFocus(event) {
 	          if (!_this2.justSelectedSuggestion && !_this2.justClickedOnSuggestionsContainer) {
-	            inputFocused(shouldRenderSuggestions(value));
+	            if (!disableSuggestionsOnFocus) {
+	              inputFocused(shouldRenderSuggestions(value));
+	            }
 	            _onFocus && _onFocus(event);
 
-	            if (shouldRenderSuggestions(value)) {
+	            if (!disableSuggestionsOnFocus && shouldRenderSuggestions(value)) {
 	              onSuggestionsFetchRequested({ value: value });
 	            }
 	          }
@@ -2203,6 +2209,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  getSectionSuggestions: _react.PropTypes.func,
 	  focusInputOnSuggestionClick: _react.PropTypes.bool.isRequired,
 	  focusFirstSuggestion: _react.PropTypes.bool.isRequired,
+	  disableSuggestionsOnFocus: _react.PropTypes.bool,
 	  theme: _react.PropTypes.object.isRequired,
 	  id: _react.PropTypes.string.isRequired,
 	  inputRef: _react.PropTypes.func.isRequired,

@@ -98,6 +98,7 @@ export default class AutosuggestContainer extends Component {
     },
     focusInputOnSuggestionClick: PropTypes.bool,
     focusFirstSuggestion: PropTypes.bool,
+    disableSuggestionsOnFocus: PropTypes.bool,
     theme: PropTypes.object,
     id: PropTypes.string
   };
@@ -136,8 +137,8 @@ export default class AutosuggestContainer extends Component {
       multiSection, shouldRenderSuggestions, renderInputComponent,
       renderSuggestionsContainer, getSuggestionValue, renderSuggestion,
       renderSectionTitle, getSectionSuggestions, inputProps, onSuggestionSelected,
-      focusInputOnSuggestionClick, focusFirstSuggestion, alwaysRenderSuggestions,
-      theme, id
+      focusInputOnSuggestionClick, focusFirstSuggestion, disableSuggestionsOnFocus,
+      alwaysRenderSuggestions, theme, id
     } = this.props;
 
     return (
@@ -158,6 +159,7 @@ export default class AutosuggestContainer extends Component {
         onSuggestionSelected={onSuggestionSelected}
         focusInputOnSuggestionClick={focusInputOnSuggestionClick}
         focusFirstSuggestion={focusFirstSuggestion}
+        disableSuggestionsOnFocus={disableSuggestionsOnFocus}
         theme={mapToAutowhateverTheme(theme)}
         id={id}
         inputRef={this.storeInputReference}

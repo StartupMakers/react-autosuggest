@@ -30,6 +30,7 @@ class Autosuggest extends Component {
     getSectionSuggestions: PropTypes.func,
     focusInputOnSuggestionClick: PropTypes.bool.isRequired,
     focusFirstSuggestion: PropTypes.bool.isRequired,
+    disableSuggestionsOnFocus: PropTypes.bool,
     theme: PropTypes.object.isRequired,
     id: PropTypes.string.isRequired,
     inputRef: PropTypes.func.isRequired,
@@ -285,7 +286,8 @@ class Autosuggest extends Component {
       getSectionSuggestions, theme, isFocused, isCollapsed, focusedSectionIndex,
       focusedSuggestionIndex, valueBeforeUpDown, inputFocused, inputChanged,
       updateFocusedSuggestion, resetFocusedSuggestion, revealSuggestions,
-      closeSuggestions, getSuggestionValue, alwaysRenderSuggestions
+      closeSuggestions, getSuggestionValue, alwaysRenderSuggestions,
+      disableSuggestionsOnFocus
     } = this.props;
     const { value, onFocus, onKeyDown } = inputProps;
     const willRenderSuggestions = this.willRenderSuggestions(this.props);
@@ -295,10 +297,12 @@ class Autosuggest extends Component {
       ...inputProps,
       onFocus: event => {
         if (!this.justSelectedSuggestion && !this.justClickedOnSuggestionsContainer) {
-          inputFocused(shouldRenderSuggestions(value));
+          if (!disableSuggestionsOnFocus) {
+            inputFocused(shouldRenderSuggestions(value));
+          }
           onFocus && onFocus(event);
 
-          if (shouldRenderSuggestions(value)) {
+          if (!disableSuggestionsOnFocus && shouldRenderSuggestions(value)) {
             onSuggestionsFetchRequested({ value });
           }
         }
