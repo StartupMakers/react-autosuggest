@@ -10,6 +10,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _redux = require('redux');
 
 var _redux2 = require('./redux');
@@ -156,7 +160,7 @@ var AutosuggestContainer = function (_Component) {
 }(_react.Component);
 
 AutosuggestContainer.propTypes = {
-  suggestions: _react.PropTypes.array.isRequired,
+  suggestions: _propTypes2.default.array.isRequired,
   onSuggestionsFetchRequested: function onSuggestionsFetchRequested(props, propName) {
     var onSuggestionsFetchRequested = props[propName];
 
@@ -171,11 +175,11 @@ AutosuggestContainer.propTypes = {
       throw new Error('\'onSuggestionsClearRequested\' must be implemented. See: https://github.com/moroshko/react-autosuggest#onSuggestionsClearRequestedProp');
     }
   },
-  onSuggestionSelected: _react.PropTypes.func,
-  renderInputComponent: _react.PropTypes.func,
-  renderSuggestionsContainer: _react.PropTypes.func,
-  getSuggestionValue: _react.PropTypes.func.isRequired,
-  renderSuggestion: _react.PropTypes.func.isRequired,
+  onSuggestionSelected: _propTypes2.default.func,
+  renderInputComponent: _propTypes2.default.func,
+  renderSuggestionsContainer: _propTypes2.default.func,
+  getSuggestionValue: _propTypes2.default.func.isRequired,
+  renderSuggestion: _propTypes2.default.func.isRequired,
   inputProps: function inputProps(props, propName) {
     var inputProps = props[propName];
 
@@ -187,9 +191,9 @@ AutosuggestContainer.propTypes = {
       throw new Error('\'inputProps\' must have \'onChange\'.');
     }
   },
-  shouldRenderSuggestions: _react.PropTypes.func,
-  alwaysRenderSuggestions: _react.PropTypes.bool,
-  multiSection: _react.PropTypes.bool,
+  shouldRenderSuggestions: _propTypes2.default.func,
+  alwaysRenderSuggestions: _propTypes2.default.bool,
+  multiSection: _propTypes2.default.bool,
   renderSectionTitle: function renderSectionTitle(props, propName) {
     var renderSectionTitle = props[propName];
 
@@ -204,11 +208,11 @@ AutosuggestContainer.propTypes = {
       throw new Error('\'getSectionSuggestions\' must be implemented. See: https://github.com/moroshko/react-autosuggest#getSectionSuggestionsProp');
     }
   },
-  focusInputOnSuggestionClick: _react.PropTypes.bool,
-  focusFirstSuggestion: _react.PropTypes.bool,
-  disableSuggestionsOnFocus: _react.PropTypes.bool,
-  theme: _react.PropTypes.object,
-  id: _react.PropTypes.string
+  focusInputOnSuggestionClick: _propTypes2.default.bool,
+  focusFirstSuggestion: _propTypes2.default.bool,
+  disableSuggestionsOnFocus: _propTypes2.default.bool,
+  theme: _propTypes2.default.object,
+  id: _propTypes2.default.string
 };
 AutosuggestContainer.defaultProps = {
   shouldRenderSuggestions: defaultShouldRenderSuggestions,

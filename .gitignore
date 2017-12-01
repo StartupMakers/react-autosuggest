@@ -4,3 +4,4 @@ coverage
 demo/dist
 npm-debug.log
 yarn.lock
+.idea
